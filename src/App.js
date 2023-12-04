@@ -1,60 +1,86 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './App.css'; // Import your CSS file
+// App.js
 
-const App = () => {
-  const [weatherData, setWeatherData] = useState(null);
-  const [city, setCity] = useState('Manchester');
-  const API_KEY = '675a60d8b2f6e70cf1f1e6870a825f35'; // Your OpenWeather API key
+import "./App.css";
+import { useState } from "react";
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`http://api.openweathermap.org/data/2.5/weather`, {
-          params: {
-            q: city,
-            appid: API_KEY,
-            units: 'metric'
-          }
-        });
-        setWeatherData(response.data);
-      } catch (error) {
-        console.error('Error fetching weather data: ', error);
-      }
-    };
-    fetchData();
-  }, [city, API_KEY]);
+import clearImage from './BG/clear.jpg';
+import cloudImage from './BG/cloud.jpg';
+import drizzleImage from './BG/drizzle.jpg';
+import humidityImage from './BG/humidity.jpg';
+import rainImage from './BG/rain.jpg';
+import snowImage from './BG/snow.jpg';
+import windImage from './BG/wind.jpg';
 
-  const handleCityChange = (e) => {
-    setCity(e.target.value);
+const api = {
+  key: "675a60d8b2f6e70cf1f1e6870a825f35",
+  base: "https://api.openweathermap.org/data/2.5/",
+};
+
+function App() {
+  const [search, setSearch] = useState("");
+  const [weather, setWeather] = useState({});
+
+  function getWeatherImage(weatherCondition) {
+    switch (weatherCondition) {
+      case 'Clear':
+        return clearImage;
+      case 'Clouds':
+        return cloudImage;
+      case 'Drizzle':
+        return drizzleImage;
+      case 'Humidity':
+        return humidityImage;
+      case 'Rain':
+        return rainImage;
+      case 'Snow':
+        return snowImage;
+      case 'Wind':
+        return windImage;
+      default:
+        return '';
+    }
+  }
+
+  const searchPressed = () => {
+    fetch(`${api.base}weather?q=${search}&units=metric&APPID=${api.key}`)
+      .then((res) => res.json())
+      .then((result) => {
+        setWeather(result);
+      });
   };
 
   return (
-    <div className="container">
-      <h2>Weather App</h2>
-      <input
-        className="search-bar"
-        type="text"
-        value={city}
-        onChange={handleCityChange}
-        placeholder="Enter city name..."
-      />
-      
-      {weatherData && (
-        <div className="weather-info">
-          <img
-            className="weather-icon"
-            src={`http://openweathermap.org/img/wn/${weatherData.weather[0].icon}.png`}
-            alt="Weather Icon"
+    <div className="App">
+      <header className="App-header">
+        <h1>Weather App</h1>
+
+        <div>
+          <input
+            type="text"
+            placeholder="Enter a city name..."
+            onChange={(e) => setSearch(e.target.value)}
           />
-          <h3>{weatherData.name}, {weatherData.sys.country}</h3>
-          <p>{weatherData.weather[0].description}</p>
-          <p>Temperature: {weatherData.main.temp}°C</p>
-          <p>Humidity: {weatherData.main.humidity}%</p>
+          <button onClick={searchPressed}>Search</button>
         </div>
-      )}
+
+        {typeof weather.main !== "undefined" ? (
+          <div>
+            <p>{weather.name}</p>
+            <img
+              src={getWeatherImage(weather.weather[0].main)}
+              alt={weather.weather[0].main}
+              style={{ maxWidth: '100px' }} // Adjust styles as needed
+            />
+            <p>{weather.main.temp}°C</p>
+            <p>{weather.weather[0].main}</p>
+            <p>({weather.weather[0].description})</p>
+          </div>
+        ) : (
+          ""
+        )}
+      </header>
     </div>
   );
-};
+}
 
 export default App;
